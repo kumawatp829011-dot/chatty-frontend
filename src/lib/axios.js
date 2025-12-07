@@ -1,17 +1,9 @@
 import axios from "axios";
 
 export const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
-  withCredentials: true,
+  baseURL: import.meta.env.VITE_API_URL, // e.g. https://chatty-backend-dfjr.onrender.com
+  withCredentials: true,                  // jwt cookie bhejne ke liye
 });
 
-// Automatically attach token in every request
-axiosInstance.interceptors.request.use((config) => {
-  const token = localStorage.getItem("chatty-token");
-
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
-  return config;
-});
+// ❌ Yahan koi token / interceptor ki zarurat nahi
+// Backend already httpOnly cookie se auth handle karega

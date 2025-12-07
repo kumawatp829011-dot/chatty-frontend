@@ -17,29 +17,28 @@ export const useAuthStore = create((set, get) => ({
   onlineUsers: [],
   socket: null,
 
+  // 🔍 App load hone par user check
   checkAuth: async () => {
     try {
       const res = await axiosInstance.get("/api/auth/check");
-
-      localStorage.setItem("chatty-token", res.data.token);
-      set({ authUser: res.data.user });
-
+      // backend se direct user object aa raha hota hai
+      set({ authUser: res.data });
       get().connectSocket();
     } catch (error) {
       set({ authUser: null });
-      localStorage.removeItem("chatty-token");
     } finally {
       set({ isCheckingAuth: false });
     }
   },
 
+  // 🆕 Signup
   signup: async (data) => {
     set({ isSigningUp: true });
     try {
       const res = await axiosInstance.post("/api/auth/signup", data);
 
-      localStorage.setItem("chatty-token", res.data.token);
-      set({ authUser: res.data.user });
+      // yahan bhi backend se user object hi aata hai
+      set({ authUser: res.data });
 
       toast.success("Account created successfully");
       get().connectSocket();
@@ -50,14 +49,13 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
+  // 🔐 Login
   login: async (data) => {
     set({ isLoggingIn: true });
     try {
       const res = await axiosInstance.post("/api/auth/login", data);
 
-      localStorage.setItem("chatty-token", res.data.token);
-      set({ authUser: res.data.user });
-
+      set({ authUser: res.data });
       toast.success("Logged in successfully");
       get().connectSocket();
     } catch (error) {
@@ -67,6 +65,7 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
+  // 🚪 Logout
   logout: async () => {
     try {
       const { socket, authUser } = get();
@@ -76,7 +75,6 @@ export const useAuthStore = create((set, get) => ({
       }
 
       await axiosInstance.post("/api/auth/logout");
-      localStorage.removeItem("chatty-token");
 
       set({ authUser: null });
       get().disconnectSocket();
@@ -86,22 +84,24 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
+  // 👤 Profile update
   updateProfile: async (data) => {
     set({ isUpdatingProfile: true });
     try {
       const res = await axiosInstance.put("/api/auth/update-profile", data);
 
-      localStorage.setItem("chatty-token", res.data.token);
-      set({ authUser: res.data.user });
-
+      set({ authUser: res.data });
       toast.success("Profile updated successfully");
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Profile update failed");
+      toast.error(
+        error?.response?.data?.message || "Profile update failed"
+      );
     } finally {
       set({ isUpdatingProfile: false });
     }
   },
 
+  // 🌐 Socket connect
   connectSocket: () => {
     const { authUser, socket } = get();
     if (!authUser || socket?.connected) return;
@@ -118,6 +118,7 @@ export const useAuthStore = create((set, get) => ({
     });
   },
 
+  // ❌ Socket disconnect
   disconnectSocket: () => {
     const { socket } = get();
     if (socket?.connected) socket.disconnect();
