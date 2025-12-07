@@ -3,10 +3,10 @@ import { axiosInstance } from "../lib/axios.js";
 import toast from "react-hot-toast";
 import { io } from "socket.io-client";
 
-const BASE_URL = import.meta.env.MODE === "development"
-  ? "http://localhost:5050"
-  : "https://chatty-backend-dfjr.onrender.com";
-
+const BASE_URL =
+  import.meta.env.MODE === "development"
+    ? "http://localhost:5050"
+    : "https://chatty-backend-dfjr.onrender.com";
 
 export const useAuthStore = create((set, get) => ({
   authUser: null,
@@ -20,10 +20,14 @@ export const useAuthStore = create((set, get) => ({
   checkAuth: async () => {
     try {
       const res = await axiosInstance.get("/api/auth/check");
-      set({ authUser: res.data });
+
+      localStorage.setItem("chatty-token", res.data.token);
+      set({ authUser: res.data.user });
+
       get().connectSocket();
     } catch (error) {
       set({ authUser: null });
+      localStorage.removeItem("chatty-token");
     } finally {
       set({ isCheckingAuth: false });
     }
@@ -33,7 +37,10 @@ export const useAuthStore = create((set, get) => ({
     set({ isSigningUp: true });
     try {
       const res = await axiosInstance.post("/api/auth/signup", data);
-      set({ authUser: res.data });
+
+      localStorage.setItem("chatty-token", res.data.token);
+      set({ authUser: res.data.user });
+
       toast.success("Account created successfully");
       get().connectSocket();
     } catch (error) {
@@ -47,7 +54,10 @@ export const useAuthStore = create((set, get) => ({
     set({ isLoggingIn: true });
     try {
       const res = await axiosInstance.post("/api/auth/login", data);
-      set({ authUser: res.data });
+
+      localStorage.setItem("chatty-token", res.data.token);
+      set({ authUser: res.data.user });
+
       toast.success("Logged in successfully");
       get().connectSocket();
     } catch (error) {
@@ -56,17 +66,6 @@ export const useAuthStore = create((set, get) => ({
       set({ isLoggingIn: false });
     }
   },
-
-  // logout: async () => {
-  //   try {
-  //     await axiosInstance.post("/api/auth/logout");
-  //     set({ authUser: null });
-  //     get().disconnectSocket();
-  //     toast.success("Logged out successfully");
-  //   } catch (error) {
-  //     toast.error("Logout failed");
-  //   }
-  // },
 
   logout: async () => {
     try {
@@ -77,6 +76,8 @@ export const useAuthStore = create((set, get) => ({
       }
 
       await axiosInstance.post("/api/auth/logout");
+      localStorage.removeItem("chatty-token");
+
       set({ authUser: null });
       get().disconnectSocket();
       toast.success("Logged out successfully");
@@ -89,32 +90,36 @@ export const useAuthStore = create((set, get) => ({
     set({ isUpdatingProfile: true });
     try {
       const res = await axiosInstance.put("/api/auth/update-profile", data);
-      set({ authUser: res.data });
+
+      localStorage.setItem("chatty-token", res.data.token);
+      set({ authUser: res.data.user });
+
       toast.success("Profile updated successfully");
     } catch (error) {
-      toast.error("Profile update failed");
+      toast.error(error?.response?.data?.message || "Profile update failed");
     } finally {
       set({ isUpdatingProfile: false });
     }
   },
 
   connectSocket: () => {
-    const { authUser } = get();
-    if (!authUser || get().socket?.connected) return;
+    const { authUser, socket } = get();
+    if (!authUser || socket?.connected) return;
 
-    const socket = io(BASE_URL, {
+    const newSocket = io(BASE_URL, {
       query: { userId: authUser._id },
     });
 
-    socket.connect();
-    set({ socket });
+    newSocket.connect();
+    set({ socket: newSocket });
 
-    socket.on("getOnlineUsers", (userIds) => {
+    newSocket.on("getOnlineUsers", (userIds) => {
       set({ onlineUsers: userIds });
     });
   },
 
   disconnectSocket: () => {
-    if (get().socket?.connected) get().socket.disconnect();
+    const { socket } = get();
+    if (socket?.connected) socket.disconnect();
   },
 }));
