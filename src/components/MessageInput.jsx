@@ -1,16 +1,19 @@
+// frontend/src/components/MessageInput.jsx
 import { useState } from "react";
-import { useAuthStore } from "../store/useAuthStore";
 import { useChatStore } from "../store/useChatStore";
+import { useAuthStore } from "../store/useAuthStore";
 
-const MessageInput = ({ socket, selectedUser }) => {
+let typingTimeout;
+
+const MessageInput = () => {
   const [text, setText] = useState("");
-  const { authUser } = useAuthStore();
-  const { sendMessage } = useChatStore();
+  const { selectedUser, sendMessage } = useChatStore();
+  const { socket, authUser } = useAuthStore();
 
-  let typingTimeout;
+  const handleTyping = (e) => {
+    setText(e.target.value);
 
-  const handleTyping = () => {
-    if (!socket || !authUser || !selectedUser) return;
+    if (!socket || !selectedUser) return;
 
     socket.emit("typing", {
       senderId: authUser._id,
@@ -18,19 +21,17 @@ const MessageInput = ({ socket, selectedUser }) => {
     });
 
     clearTimeout(typingTimeout);
-
     typingTimeout = setTimeout(() => {
       socket.emit("stopTyping", {
         senderId: authUser._id,
         receiverId: selectedUser._id,
       });
-    }, 600);
+    }, 1000);
   };
 
-  const handleSend = () => {
-    if (!text.trim()) return;
-
-    sendMessage({ text });
+  const send = () => {
+    if (!text.trim() || !selectedUser) return;
+    sendMessage({ message: text });
     setText("");
 
     socket.emit("stopTyping", {
@@ -40,19 +41,15 @@ const MessageInput = ({ socket, selectedUser }) => {
   };
 
   return (
-    <div className="p-3 flex gap-2">
+    <div className="p-3 flex gap-2 border-t border-base-300">
       <input
         type="text"
         className="input input-bordered flex-1"
         placeholder="Type a message..."
         value={text}
-        onChange={(e) => {
-          setText(e.target.value);
-          handleTyping();
-        }}
+        onChange={handleTyping}
       />
-
-      <button className="btn btn-primary" onClick={handleSend}>
+      <button onClick={send} className="btn btn-primary">
         Send
       </button>
     </div>

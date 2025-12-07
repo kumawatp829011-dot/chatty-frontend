@@ -93,9 +93,7 @@ export const useAuthStore = create((set, get) => ({
       set({ authUser: res.data });
       toast.success("Profile updated successfully");
     } catch (error) {
-      toast.error(
-        error?.response?.data?.message || "Profile update failed"
-      );
+      toast.error(error?.response?.data?.message || "Profile update failed");
     } finally {
       set({ isUpdatingProfile: false });
     }
@@ -115,6 +113,7 @@ export const useAuthStore = create((set, get) => ({
 
     newSocket.on("getOnlineUsers", (userIds) => {
       set({ onlineUsers: userIds });
+      console.log("Online users updated:", userIds);
     });
   },
 

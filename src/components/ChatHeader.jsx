@@ -1,46 +1,26 @@
-import { X } from "lucide-react";
-import { useAuthStore } from "../store/useAuthStore";
+// frontend/src/components/ChatHeader.jsx
 import { useChatStore } from "../store/useChatStore";
 
 const ChatHeader = () => {
-  const { selectedUser, setSelectedUser } = useChatStore();
-  const { onlineUsers } = useAuthStore();
+  const { selectedUser, setSelectedUser, setShowSidebar } = useChatStore();
 
-  if (!selectedUser) {
-    return (
-      <div className="p-3 border-b border-base-300 text-center text-sm text-zinc-400">
-        Select a conversation to start chatting
-      </div>
-    );
-  }
+  const handleClose = () => {
+    setSelectedUser(null);
+    if (window.innerWidth < 768) setShowSidebar(true);
+  };
 
   return (
-    <div className="p-3 border-b border-base-300 flex justify-between items-center">
+    <div className="flex justify-between items-center p-3 border-b border-base-300">
       <div className="flex items-center gap-3">
-        <div className="relative">
-          <img
-            src={selectedUser?.profilePic || "/avatar.png"}
-            alt="profile"
-            className="size-10 rounded-full object-cover"
-          />
-          {onlineUsers?.includes(selectedUser._id) && (
-            <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full ring-2 ring-zinc-900" />
-          )}
-        </div>
-
-        <div>
-          <h3 className="font-semibold">{selectedUser?.fullName || "Unknown"}</h3>
-          <p className="text-xs text-zinc-400">
-            {onlineUsers?.includes(selectedUser._id) ? "Online" : "Offline"}
-          </p>
-        </div>
+        <img
+          src={selectedUser.profilePic || "/avatar.png"}
+          className="size-10 rounded-full"
+        />
+        <div className="font-medium">{selectedUser.fullName}</div>
       </div>
 
-      <button
-        onClick={() => setSelectedUser(null)}
-        className="hover:text-red-500 transition"
-      >
-        <X size={20} />
+      <button onClick={handleClose} className="text-xl font-bold">
+        ✕
       </button>
     </div>
   );
