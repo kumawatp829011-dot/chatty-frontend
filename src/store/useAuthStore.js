@@ -100,22 +100,43 @@ export const useAuthStore = create((set, get) => ({
   },
 
   // 🌐 Socket connect
-  connectSocket: () => {
-    const { authUser, socket } = get();
-    if (!authUser || socket?.connected) return;
+  // connectSocket: () => {
+  //   const { authUser, socket } = get();
+  //   if (!authUser || socket?.connected) return;
 
-    const newSocket = io(BASE_URL, {
-      query: { userId: authUser._id },
-    });
+  //   const newSocket = io(BASE_URL, {
+  //     query: { userId: authUser._id },
+  //   });
 
-    newSocket.connect();
-    set({ socket: newSocket });
+  //   newSocket.connect();
+  //   set({ socket: newSocket });
 
-    newSocket.on("getOnlineUsers", (userIds) => {
-      set({ onlineUsers: userIds });
-      console.log("Online users updated:", userIds);
-    });
-  },
+  //   newSocket.on("getOnlineUsers", (userIds) => {
+  //     set({ onlineUsers: userIds });
+  //     console.log("Online users updated:", userIds);
+  //   });
+
+  // 🌐 Socket connect
+connectSocket: () => {
+  const { authUser, socket } = get();
+  if (!authUser || socket?.connected) return;
+
+  const newSocket = io(BASE_URL, {
+    withCredentials: true,        // cookie send karega
+    transports: ["websocket"],    // mobile ke liye must
+    path: "/socket.io",
+    query: { userId: authUser._id },
+  });
+
+  set({ socket: newSocket });
+
+  newSocket.on("getOnlineUsers", (userIds) => {
+    set({ onlineUsers: userIds });
+    console.log("Online users updated:", userIds);
+  });
+},
+
+  
 
   // ❌ Socket disconnect
   disconnectSocket: () => {
