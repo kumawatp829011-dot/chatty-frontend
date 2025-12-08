@@ -1,19 +1,17 @@
 // frontend/src/components/MessageInput.jsx
 import { useState } from "react";
-import { useChatStore } from "../store/useChatStore";
 import { useAuthStore } from "../store/useAuthStore";
+import { useChatStore } from "../store/useChatStore";
 
 let typingTimeout;
 
 const MessageInput = () => {
   const [text, setText] = useState("");
-  const { selectedUser, sendMessage } = useChatStore();
   const { socket, authUser } = useAuthStore();
+  const { selectedUser, sendMessage } = useChatStore();
 
-  const handleTyping = (e) => {
-    setText(e.target.value);
-
-    if (!socket || !selectedUser) return;
+  const handleTyping = () => {
+    if (!socket || !authUser || !selectedUser) return;
 
     socket.emit("typing", {
       senderId: authUser._id,
@@ -21,17 +19,19 @@ const MessageInput = () => {
     });
 
     clearTimeout(typingTimeout);
+
     typingTimeout = setTimeout(() => {
       socket.emit("stopTyping", {
         senderId: authUser._id,
         receiverId: selectedUser._id,
       });
-    }, 1000);
+    }, 800);
   };
 
-  const send = () => {
-    if (!text.trim() || !selectedUser) return;
-    sendMessage({ message: text });
+  const handleSend = () => {
+    if (!text.trim()) return;
+
+    sendMessage({ message: text }); // MUST BE message ✔
     setText("");
 
     socket.emit("stopTyping", {
@@ -47,9 +47,14 @@ const MessageInput = () => {
         className="input input-bordered flex-1"
         placeholder="Type a message..."
         value={text}
-        onChange={handleTyping}
+        onChange={(e) => {
+          setText(e.target.value);
+          handleTyping();
+        }}
+        onKeyDown={(e) => e.key === "Enter" && handleSend()}
       />
-      <button onClick={send} className="btn btn-primary">
+
+      <button className="btn btn-primary" onClick={handleSend}>
         Send
       </button>
     </div>

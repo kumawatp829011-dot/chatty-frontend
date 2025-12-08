@@ -1,9 +1,20 @@
+// frontend/src/lib/axios.js
 import axios from "axios";
 
 export const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL, // e.g. https://chatty-backend-dfjr.onrender.com
-  withCredentials: true,                  // jwt cookie bhejne ke liye
+  baseURL: import.meta.env.VITE_API_URL, // keep env ❌ do NOT remove
+  withCredentials: true,
+  headers: {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  },
 });
 
-// ❌ Yahan koi token / interceptor ki zarurat nahi
-// Backend already httpOnly cookie se auth handle karega
+// Debug only (helps us see server messages)
+axiosInstance.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    console.error("AXIOS ERROR:", err?.response?.data || err.message);
+    return Promise.reject(err);
+  }
+);
