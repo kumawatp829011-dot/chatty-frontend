@@ -29,7 +29,9 @@ const ChatHeader = () => {
         </div>
 
         <div>
-          <h3 className="font-semibold">{selectedUser?.fullName || "Unknown"}</h3>
+          <h3 className="font-semibold">
+            {selectedUser?.fullName || "Unknown"}
+          </h3>
           <p className="text-xs text-zinc-400">
             {onlineUsers?.includes(selectedUser._id) ? "Online" : "Offline"}
           </p>
@@ -37,7 +39,11 @@ const ChatHeader = () => {
       </div>
 
       <button
-        onClick={() => setSelectedUser(null)}
+        // onClick={() => setSelectedUser(null)}
+        onClick={() => {
+          setSelectedUser(null);
+          setShowSidebar(true); // ⭐ Sidebar back on mobile
+        }}
         className="hover:text-red-500 transition"
       >
         <X size={20} />
@@ -46,4 +52,4 @@ const ChatHeader = () => {
   );
 };
 
-export default ChatHeader;
+export default ChatHeader;

@@ -13,6 +13,7 @@ const Sidebar = () => {
     setSelectedUser,
     isUsersLoading,
     unreadCount,
+    showSidebar, // ⭐ Add this
   } = useChatStore();
 
   const { onlineUsers, authUser, socket, isCheckingAuth } = useAuthStore();
@@ -30,7 +31,10 @@ const Sidebar = () => {
     : users;
 
   return (
-    <aside className="h-full w-20 lg:w-72 border-r border-base-300 flex flex-col transition-all duration-200">
+    <aside
+      className={`h-full border-r border-base-300 flex flex-col transition-all duration-300
+    ${showSidebar ? "w-64 opacity-100 visible" : "w-0 opacity-0 invisible"}`}
+    >
       <div className="border-b border-base-300 w-full p-5">
         <div className="flex items-center gap-2">
           <Users className="size-6" />
@@ -98,4 +102,4 @@ const Sidebar = () => {
   );
 };
 
-export default Sidebar;
+export default Sidebar;
